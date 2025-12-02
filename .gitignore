@@ -1,0 +1,6 @@
+/L2Switch.runs/
+/L2Switch.cache/
+/L2Switch.hw/
+/L2Switch.sim/
+/L2Switch.ip_user_files/
+*.xpr
