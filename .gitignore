@@ -4,3 +4,5 @@
 /L2Switch.sim/
 /L2Switch.ip_user_files/
 *.xpr
+*.wcfg
+L2Switch.srcs/utils_1/
