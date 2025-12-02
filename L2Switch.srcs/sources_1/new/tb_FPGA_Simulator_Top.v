@@ -64,22 +64,21 @@ module tb_FPGA_Simulator_Top;
         $display("[%0t] System Reset Released.", $time);
 
         // 2. 페이로드 설정 (키패드 '5' 입력 시뮬레이션)
-        // 실제 키패드 모듈의 스캔 로직에 따라 KEYPAD_COL 값을 조절해야 합니다.
-        // 여기서는 KEYPAD_ROW가 4'b1101일 때 KEYPAD_COL을 3'b110으로 설정하여 '5'를 입력한다고 가정합니다.
-        // 키패드 모듈이 없으므로, 이 부분은 실제 동작과 다를 수 있습니다.
-        // Top 모듈은 keypad_value_wire가 유효할 때 payload를 업데이트합니다.
-        // 이 테스트벤치에서는 키패드 모듈을 직접 제어하지 않으므로,
-        // 페이로드가 설정되는 것을 확인하려면 키패드 모듈의 동작을 알아야 합니다.
-        // 여기서는 임의의 값을 설정하고 넘어갑니다.
-        // payload를 5로 설정한다고 가정.
-        $display("[%0t] Simulating keypad press for payload '5'.", $time);
-        // 실제 키패드 스캔을 시뮬레이션하는 대신, 페이로드가 설정될 시간을 기다립니다.
-        // (실제로는 키패드 모듈의 동작에 따라 KEYPAD_COL을 동적으로 변경해야 함)
-        // dut.payload <= 4'h5; // 직접 할당은 불가능하므로, 시뮬레이션 상에서만 가정
-        // 대신, 키패드 입력이 없으면 payload는 0으로 유지됩니다.
-        // 전송 시 payload가 0으로 전송될 것입니다.
+        // Keypad.v 분석: '5'는 Row 1, Col 1에 해당.
+        // dut가 KEYPAD_ROW를 4'b0100 (Row 1 활성화)으로 만들 때,
+        // KEYPAD_COL을 3'b010 (Col 1 활성화)으로 설정하여 키 입력을 시뮬레이션.
+        $display("[%0t] Waiting to simulate keypad press for payload '5'...", $time);
+        wait (dut.KEYPAD_ROW == 4'b0100); // Row 1이 스캔될 때까지 대기
+        #1; // 안정성을 위해 약간의 지연
+        KEYPAD_COL = 3'b010; // '5' 키에 해당하는 열을 활성화
+        #40; // 키가 눌린 상태를 몇 클럭 동안 유지
+        KEYPAD_COL = 3'b111; // 키를 뗌 (모든 열 비활성화)
+        $display("[%0t] Keypad '5' pressed. Payload should be updated.", $time);
+        #100; // 페이로드 값이 업데이트될 시간을 줌
 
-      #200;
+        // 페이로드 값 확인 (LED 하위 4비트)
+        if (FPGA_LEDS[3:0] == 4'h5) $display("[SUCCESS] Payload is correctly set to 5. (LEDS[3:0]=%h)", FPGA_LEDS[3:0]);
+        else $display("[FAILURE] Payload is NOT set correctly. (LEDS[3:0]=%h)", FPGA_LEDS[3:0]);
 
         // 3. 프레임 전송 (Node A -> Node C)
         // DIP 스위치 설정: DST=C(1100), SRC=A(1010)
@@ -94,7 +93,15 @@ module tb_FPGA_Simulator_Top;
         $display("[%0t] Send button pressed. Frame transmission from A to C initiated.", $time);
 
         // 4. 시뮬레이션 진행 및 종료
-        #5000; // 스위치를 통해 프레임이 전달될 충분한 시간
+        #5000; // 스위치를 통해 프레임이 전달되고 LED가 업데이트될 충분한 시간
+
+        // 최종 결과 확인: Payload는 5, 수신 노드는 C (LED[6]=1)
+        // FPGA_LEDS 예상 값: 8'b0100_0101 = 8'h45
+        if (FPGA_LEDS == 8'h45)
+            $display("[SUCCESS] Final LED value is correct: %h. Frame successfully received by Node C.", FPGA_LEDS);
+        else
+            $display("[FAILURE] Final LED value is incorrect: %h. Expected 8'h45.", FPGA_LEDS);
+
         $display("[%0t] Simulation finished.", $time);
         $finish;
     end
