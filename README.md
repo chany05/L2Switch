@@ -5,7 +5,6 @@
 ![Verilog](https://img.shields.io/badge/Language-Verilog-blue?style=for-the-badge&logo=verilog)
 ![Vivado](https://img.shields.io/badge/Tool-Xilinx%20Vivado-red?style=for-the-badge)
 ![FPGA](https://img.shields.io/badge/Target-FPGA-orange?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
 <br/>
 
